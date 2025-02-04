@@ -38,7 +38,7 @@ func handlerRegister(s *state, cmd command) error {
 	if err := s.config.SetUser(user.Name); err != nil {
 		return fmt.Errorf("Error setting user: %w", err)
 	}
-	fmt.Println(fmt.Sprintf("User created, user params:\n\v", user))
+	fmt.Println(fmt.Sprintf("User created, user params:\n%v", user))
 
 	return nil
 }
