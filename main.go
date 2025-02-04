@@ -63,7 +63,8 @@ func main() {
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
 	cmds.register("agg", handlerAgg)
-
+	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("feeds", handlerFeeds)
 	// Build the command from CLI args.
 	cmd := command{
 		name:      os.Args[1],  // index 1 is the command
