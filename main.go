@@ -1,13 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/edgardcham/go-blog-aggregator/internal/database"
 	"os"
 
 	"github.com/edgardcham/go-blog-aggregator/internal/config"
 )
 
+import _ "github.com/lib/pq"
+
 type state struct {
+	db     *database.Queries
 	config *config.Config
 }
 
@@ -40,11 +45,21 @@ func main() {
 
 	// Load config and wrap it in state.
 	gatorconfig := config.Read() // returns a config value
-	st := state{config: &gatorconfig}
+
+	// Connect to the database.
+	dbUrl := gatorconfig.DB_URL
+	db, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		fmt.Println("Error connecting to database")
+		os.Exit(1)
+	}
+	dbQueries := database.New(db)
+	st := state{config: &gatorconfig, db: dbQueries}
 
 	// Setup commands and register login.
 	cmds := commands{cmds: make(map[string]func(*state, command) error)}
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	// Build the command from CLI args.
 	cmd := command{
