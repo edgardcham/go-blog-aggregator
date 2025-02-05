@@ -9,24 +9,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.arguments) < 2 {
 		return fmt.Errorf("Missing parameters. Usage: addfeed <name> <feedURL>")
 	}
 
 	name := cmd.arguments[0]
 	feedURL := cmd.arguments[1]
-	currentUser := s.config.CURRENT_USER_NAME
+	userId := user.ID // Use the user provided by middleware
 
-	// Fetch user from database
-	db := s.db
-	user, err := db.GetUser(context.Background(), currentUser)
-	if err != nil {
-		return fmt.Errorf("User %s does not exist/is not registered", currentUser)
-	}
-	userId := user.ID
 	id := uuid.New()
-
 	parameters := database.CreateFeedParams{
 		ID:        id,
 		CreatedAt: time.Now(),
@@ -36,7 +28,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UserID:    userId,
 	}
 
-	feed, err := db.CreateFeed(context.Background(), parameters)
+	feed, err := s.db.CreateFeed(context.Background(), parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating feed: %w", err)
 	}
@@ -48,7 +40,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UserID:    userId,
 		FeedID:    feed.ID,
 	}
-	_, err = db.CreateFeedFollow(context.Background(), feedFollowParams)
+	_, err = s.db.CreateFeedFollow(context.Background(), feedFollowParams)
 	if err != nil {
 		return fmt.Errorf("Failed to create feed follow entry: %w", err)
 	}

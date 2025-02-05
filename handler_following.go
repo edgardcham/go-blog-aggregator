@@ -3,19 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/edgardcham/go-blog-aggregator/internal/database"
 )
 
-func handlerFollowing(s *state, cmd command) error {
-	currentUser := s.config.CURRENT_USER_NAME
-
-	// fetch current user data
-	userData, err := s.db.GetUser(context.Background(), currentUser)
-	if err != nil {
-		return fmt.Errorf("Error getting user: %w", err)
-	}
-	userId := userData.ID
-	db := s.db
-	following, err := db.GetFeedFollowsForUser(context.Background(), userId)
+func handlerFollowing(s *state, cmd command, user database.User) error {
+	following, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return fmt.Errorf("Error getting following: %w", err)
 	}
