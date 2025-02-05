@@ -68,7 +68,7 @@ Run using the Go toolchain:
 go run .
 ```
 
-	•	Production Mode:
+•	Production Mode:
 After installation via go install, simply run:
 
 ```bash
