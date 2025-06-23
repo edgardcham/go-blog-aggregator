@@ -13,6 +13,63 @@ Gator is a CLI tool that allows users to:
 * Use SQL to migrate a database using `sqlc` and `goose`
 * Write a long runnning-service that continuously fetches new posts from RSS feeds and stores them in the database
 
+## Current Features
+
+### User Management
+* **Register**: Create a new user account
+* **Login**: Switch between existing user accounts
+* **List Users**: View all registered users
+* **Reset**: Clear the entire database
+
+### Feed Management
+* **Add Feed**: Add a new RSS feed to the system (automatically follows it)
+* **List Feeds**: View all feeds in the system and their creators
+* **Follow Feed**: Follow an existing feed by URL
+* **Following**: View all feeds you're currently following
+
+### RSS Aggregation
+* **Agg**: Fetch and parse RSS feed from wagslane.dev (test command)
+* RSS feed parsing with HTML entity decoding
+* Context-aware HTTP requests with timeout support
+
+## Commands
+
+```bash
+# User commands
+go run . register <username>    # Create a new user
+go run . login <username>       # Login as existing user
+go run . users                  # List all users
+go run . reset                  # Clear database
+
+# Feed commands
+go run . addfeed <name> <url>   # Add and follow a new feed
+go run . feeds                  # List all feeds
+go run . follow <url>           # Follow an existing feed
+go run . following              # List feeds you follow
+
+# Aggregation
+go run . agg                    # Test RSS feed fetching
+```
+
+## Technical Implementation
+
+### Database Schema
+* **users**: Stores user information with unique usernames
+* **feeds**: Stores RSS feed URLs with unique constraint
+* **feed_follows**: Many-to-many relationship between users and feeds
+
+### Key Technologies
+* **PostgreSQL**: Database with foreign key constraints and cascading deletes
+* **sqlc**: Type-safe SQL code generation
+* **goose**: Database migration management
+* **context**: Used for request cancellation and timeouts
+* **UUID**: Unique identifiers for all entities
+
+### Error Handling
+* Duplicate user detection with PostgreSQL error codes
+* Proper error propagation with wrapped errors
+* User-friendly error messages
+
 ## Goose
 
 To install goose:
