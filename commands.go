@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type command struct {
 	name string
@@ -29,4 +31,3 @@ func (c *commands) register(name string, f func(*state, command) error) error {
 
 	return nil
 }
-

@@ -16,13 +16,13 @@ func handlerLogin(s *state, cmd command) error {
 	username := cmd.args[0]
 
 	// check if user exists
-	_, err := s.db.GetUser(context.Background(), username)
+	user, err := s.db.GetUser(context.Background(), username)
 	if err != nil {
 		fmt.Println("user does not exist")
 		os.Exit(1)
 	}
 
-	if err := config.SetUser(username); err != nil {
+	if err := config.SetUser(username, user.ID.String()); err != nil {
 		return fmt.Errorf("failed to set user: %w", err)
 	}
 

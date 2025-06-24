@@ -39,7 +39,7 @@ func handlerRegister(s *state, cmd command) error {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
-	if err = config.SetUser(username); err != nil {
+	if err = config.SetUser(username, user.ID.String()); err != nil {
 		return fmt.Errorf("failed to set user: %w", err)
 	}
 

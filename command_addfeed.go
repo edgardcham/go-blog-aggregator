@@ -5,28 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/edgardcham/go-blog-aggregator/internal/config"
 	"github.com/edgardcham/go-blog-aggregator/internal/database"
 	"github.com/google/uuid"
 )
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.args) < 2 {
 		return fmt.Errorf("feed name and URL are required")
 	}
 
 	feedName := cmd.args[0]
 	feedURL := cmd.args[1]
-
-	cfg, err := config.Read()
-	if err != nil {
-		return fmt.Errorf("failed to read config: %w", err)
-	}
-
-	user, err := s.db.GetUser(context.Background(), cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("failed to get user: %w", err)
-	}
 
 	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		ID:        uuid.New(),

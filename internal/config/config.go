@@ -9,6 +9,7 @@ import (
 type Config struct {
 	DBURL           string `json:"db_url"`
 	CurrentUserName string `json:"current_user_name"`
+	CurrentUserID   string `json:"current_user_id"`
 }
 
 const (
@@ -35,13 +36,14 @@ func Read() (Config, error) {
 	return cfg, nil
 }
 
-func SetUser(name string) error {
+func SetUser(name string, id string) error {
 	cfg, err := Read()
 	if err != nil {
 		return err
 	}
 
 	cfg.CurrentUserName = name
+	cfg.CurrentUserID = id
 	return write(cfg)
 }
 

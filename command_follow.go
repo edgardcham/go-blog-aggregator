@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/edgardcham/go-blog-aggregator/internal/config"
 	"github.com/edgardcham/go-blog-aggregator/internal/database"
 	"github.com/google/uuid"
 )
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("feed URL is required")
 	}
@@ -20,16 +19,6 @@ func handlerFollow(s *state, cmd command) error {
 	feed, err := s.db.GetFeedByURL(context.Background(), feedURL)
 	if err != nil {
 		return fmt.Errorf("failed to get feed: %w", err)
-	}
-
-	cfg, err := config.Read()
-	if err != nil {
-		return fmt.Errorf("failed to read config: %w", err)
-	}
-
-	user, err := s.db.GetUser(context.Background(), cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("failed to get user: %w", err)
 	}
 
 	feedFollow, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
