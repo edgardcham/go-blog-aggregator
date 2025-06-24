@@ -7,6 +7,10 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/edgardcham/go-blog-aggregator/internal/database"
+	"github.com/google/uuid"
 )
 
 type RSSFeed struct {
@@ -60,22 +64,61 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	return &feed, nil
 }
 
-func handlerAgg(s *state, cmd command) error {
-	feedURL := "https://www.wagslane.dev/index.xml"
-	feed, err := fetchFeed(context.Background(), feedURL)
+func scrapeFeeds(s *state) error {
+	feed, err := s.db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get next feed to fetch: %w", err)
+	}
+
+	if err = s.db.MarkFeedFetched(context.Background(), feed.ID); err != nil {
+		return fmt.Errorf("failed to mark feed as fetched: %w", err)
+	}
+
+	feedData, err := fetchFeed(context.Background(), feed.Url)
 	if err != nil {
 		return fmt.Errorf("failed to fetch feed: %w", err)
 	}
 
-	fmt.Printf("Feed: %v\n", feed.Channel.Title)
-	fmt.Printf("Description: %v\n", feed.Channel.Description)
-	fmt.Printf("Posts:\n")
+	// store posts in the database
+	for _, item := range feedData.Channel.Item {
+		publishedAt, err := time.Parse(time.RFC1123, item.PubDate)
+		if err != nil {
+			return fmt.Errorf("failed to parse published at: %w", err)
+		}
 
-	for _, item := range feed.Channel.Item {
-		fmt.Printf("Post: %v\n", item.Title)
-		fmt.Printf("Description: %v\n", item.Description)
-		fmt.Printf("Link: %v\n", item.Link)
-		fmt.Printf("PubDate: %v\n", item.PubDate)
+		_, err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: item.Description,
+			PublishedAt: publishedAt,
+			FeedID:      feed.ID,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create post: %w", err)
+		}
 	}
+
 	return nil
+}
+
+func handlerAgg(s *state, cmd command) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("missing duration string")
+	}
+
+	duration, err := time.ParseDuration(cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("invalid duration string: %w", err)
+	}
+
+	fmt.Printf("Collecting feeds every %s\n", duration)
+
+	ticker := time.NewTicker(duration)
+
+	for ; ; <-ticker.C {
+		if err := scrapeFeeds(s); err != nil {
+			fmt.Println("Error scraping feeds:", err)
+		}
+	}
 }
